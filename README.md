@@ -49,11 +49,3 @@ Then open [http://localhost:8000](http://localhost:8000).
 4. Click **Analyser med Claude** to rank them by fit
 
 Results are sorted by match score (0–100) with a short explanation for each.
-
-## Sharing
-
-To let a friend try it, forward port 8000 publicly via VS Code's Ports tab, or use [ngrok](https://ngrok.com/):
-
-```bash
-ngrok http 8000
-```
