@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Hunter</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2.5rem 1rem 4rem;
+    }
+
+    header { margin-bottom: 2rem; }
+    header h1 { font-size: 1.8rem; font-weight: 700; }
+    header p { color: #666; margin-top: 0.25rem; font-size: 0.95rem; }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 1.75rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 1.25rem;
+    }
+
+    .field { margin-bottom: 1.25rem; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 0.4rem;
+    }
+
+    .field input[type="text"] {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1.5px solid #ddd;
+      border-radius: 7px;
+      font-size: 0.95rem;
+      color: #1a1a2e;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field input[type="text"]:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; }
+
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1rem;
+      padding-top: 0.2rem;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: #333;
+      cursor: pointer;
+    }
+    .checkbox-group input[type="checkbox"] { cursor: pointer; accent-color: #4f46e5; }
+
+    /* Tom Select overrides */
+    .ts-wrapper.multi .ts-control { border: 1.5px solid #ddd; border-radius: 7px; padding: 0.4rem 0.5rem; }
+    .ts-wrapper.multi.focus .ts-control { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .ts-wrapper .ts-dropdown { border-radius: 7px; border: 1.5px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .ts-wrapper .ts-dropdown .optgroup-header { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #999; padding: 0.6rem 0.75rem 0.3rem; }
+
+    .btn-search {
+      width: 100%;
+      padding: 0.8rem;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 0.5rem;
+    }
+    .btn-search:hover { background: #4338ca; }
+    .btn-search:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+    /* Results */
+    .results-meta { font-size: 0.9rem; color: #666; margin-bottom: 1rem; }
+    .results-meta strong { color: #1a1a2e; }
+
+    .job-card {
+      background: white;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .job-title a {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #4f46e5;
+      text-decoration: none;
+    }
+    .job-title a:hover { text-decoration: underline; }
+
+    .job-meta {
+      font-size: 0.875rem;
+      color: #555;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 1.25rem;
+    }
+
+    .job-deadline { font-size: 0.8rem; color: #999; }
+
+    .status-msg { text-align: center; color: #999; padding: 3rem 0; font-size: 0.95rem; }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.5);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Profile / upload card */
+    .upload-row { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+    .upload-slot { flex: 1; min-width: 200px; }
+    .upload-slot label { display: block; font-size: 0.85rem; font-weight: 600; color: #444; margin-bottom: 0.4rem; }
+    .upload-box {
+      border: 1.5px dashed #ccc;
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      color: #888;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+      text-align: center;
+    }
+    .upload-box:hover { border-color: #4f46e5; color: #4f46e5; background: #f5f3ff; }
+    .upload-box input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .upload-box.has-file { border-style: solid; border-color: #4f46e5; color: #4f46e5; background: #f5f3ff; }
+    .upload-box.has-file .remove-btn {
+      position: absolute; top: 6px; right: 8px;
+      background: none; border: none; cursor: pointer;
+      font-size: 1rem; color: #888; line-height: 1;
+    }
+    .upload-box.has-file .remove-btn:hover { color: #ef4444; }
+
+    /* Analyze button */
+    .btn-analyze {
+      width: 100%;
+      padding: 0.8rem;
+      background: #059669;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 1rem;
+    }
+    .btn-analyze:hover { background: #047857; }
+    .btn-analyze:disabled { background: #6ee7b7; cursor: not-allowed; }
+
+    /* Match score badge */
+    .score-badge {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .score-high  { background: #dcfce7; color: #15803d; }
+    .score-mid   { background: #fef9c3; color: #854d0e; }
+    .score-low   { background: #fee2e2; color: #b91c1c; }
+
+    .job-card-header { display: flex; align-items: flex-start; gap: 0.75rem; }
+    .job-card-header .job-title { flex: 1; }
+    .job-summary { font-size: 0.875rem; color: #555; line-height: 1.5; margin-top: 0.3rem; border-top: 1px solid #f0f0f0; padding-top: 0.5rem; }
+
+    .rank-num { font-size: 0.8rem; font-weight: 700; color: #aaa; min-width: 1.5rem; padding-top: 0.15rem; }
+
+    @media (max-width: 640px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .upload-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>Job Hunter</h1>
+    <p>Finn relevante stillinger pa finn.no</p>
+  </header>
+
+  <div class="card">
+    <div class="card-title">Profil</div>
+    <div class="upload-row">
+      <div class="upload-slot">
+        <label>CV <span style="color:#ef4444">*</span></label>
+        <div class="upload-box" id="cv-box" onclick="document.getElementById('cv-input').click()">
+          <input type="file" id="cv-input" accept=".pdf,.txt" onchange="handleUpload('cv', this)">
+          <span id="cv-label">Klikk for å laste opp CV (.pdf eller .txt)</span>
+          <button class="remove-btn" id="cv-remove" style="display:none" onclick="removeFile(event,'cv')">&#x2715;</button>
+        </div>
+      </div>
+      <div class="upload-slot">
+        <label>Søknadsbrev <span style="color:#aaa;font-weight:400">(valgfritt)</span></label>
+        <div class="upload-box" id="cl-box" onclick="document.getElementById('cl-input').click()">
+          <input type="file" id="cl-input" accept=".pdf,.txt" onchange="handleUpload('cover_letter', this)">
+          <span id="cl-label">Klikk for å laste opp søknadsbrev (.pdf eller .txt)</span>
+          <button class="remove-btn" id="cl-remove" style="display:none" onclick="removeFile(event,'cover_letter')">&#x2715;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Søk</div>
+
+    <div class="field">
+      <label for="q">Søkeord</label>
+      <input type="text" id="q" placeholder="f.eks. systemutvikler, backend, data...">
+    </div>
+
+    <div class="grid-2 field">
+      <div>
+        <label>Fylke</label>
+        <select id="location" multiple placeholder="Velg fylke..."></select>
+      </div>
+      <div>
+        <label>Stilling</label>
+        <select id="occupation" multiple placeholder="Velg stilling..."></select>
+      </div>
+    </div>
+
+    <div class="field" id="kommune-field" style="display:none">
+      <label>Kommune</label>
+      <select id="municipality" multiple placeholder="Velg kommune..."></select>
+    </div>
+
+    <div class="field">
+      <label>Bransje</label>
+      <select id="industry" multiple placeholder="Velg bransje..."></select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Filtre</div>
+
+    <div class="grid-2 field">
+      <div>
+        <label>Hjemmekontor</label>
+        <div class="checkbox-group" id="home_office"></div>
+      </div>
+      <div>
+        <label>Ansettelsesform</label>
+        <div class="checkbox-group" id="job_duration"></div>
+      </div>
+    </div>
+
+    <div class="grid-3 field">
+      <div>
+        <label>Heltid / Deltid</label>
+        <div class="checkbox-group" id="extent"></div>
+      </div>
+      <div>
+        <label>Sektor</label>
+        <div class="checkbox-group" id="job_sector"></div>
+      </div>
+      <div>
+        <label>Arbeidsspråk</label>
+        <div class="checkbox-group" id="working_language"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="checkbox-group" id="published"></div>
+    </div>
+
+    <button class="btn-search" id="searchBtn" onclick="runSearch()">
+      Søk etter stillinger
+    </button>
+  </div>
+
+  <div id="analyze-bar" style="display:none">
+    <button class="btn-analyze" id="analyzeBtn" onclick="runAnalyze()">
+      Analyser med Claude
+    </button>
+  </div>
+
+  <div id="results">
+    <p class="status-msg">Velg filtre og klikk søk for å hente stillinger.</p>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+const tomSelects = {};
+const countyMunicipalities = {};  // { countyValue: [{value, label}] }
+const profile = { cv: false, cover_letter: false };
+let currentJobs = [];
+
+// ── file upload ────────────────────────────────────────────────────────────────
+
+async function handleUpload(type, input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const endpoint = type === 'cv' ? '/api/upload-cv' : '/api/upload-cover-letter';
+  const resp = await fetch(endpoint, { method: 'POST', body: formData });
+  if (!resp.ok) { alert('Opplasting feilet'); return; }
+
+  const prefix = type === 'cv' ? 'cv' : 'cl';
+  profile[type] = true;
+  document.getElementById(`${prefix}-label`).textContent = file.name;
+  document.getElementById(`${prefix}-box`).classList.add('has-file');
+  document.getElementById(`${prefix}-remove`).style.display = '';
+  updateAnalyzeBar();
+}
+
+async function removeFile(e, type) {
+  e.stopPropagation();
+  const endpoint = type === 'cv' ? '/api/upload-cv' : '/api/upload-cover-letter';
+  await fetch(endpoint, { method: 'DELETE' });
+
+  const prefix = type === 'cv' ? 'cv' : 'cl';
+  profile[type] = false;
+  document.getElementById(`${prefix}-label`).textContent =
+    type === 'cv' ? 'Klikk for å laste opp CV (.pdf eller .txt)'
+                  : 'Klikk for å laste opp søknadsbrev (.pdf eller .txt)';
+  document.getElementById(`${prefix}-box`).classList.remove('has-file');
+  document.getElementById(`${prefix}-remove`).style.display = 'none';
+  document.getElementById(`${prefix}-input`).value = '';
+  updateAnalyzeBar();
+}
+
+function updateAnalyzeBar() {
+  document.getElementById('analyze-bar').style.display =
+    (profile.cv && currentJobs.length > 0) ? '' : 'none';
+}
+
+// ── analyze ────────────────────────────────────────────────────────────────────
+
+async function runAnalyze() {
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>Analyserer med Claude...';
+
+  try {
+    const resp = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(currentJobs),
+    });
+    if (!resp.ok) {
+      let msg = resp.statusText;
+      try { msg = (await resp.json()).detail || msg; } catch { msg = await resp.text() || msg; }
+      throw new Error(msg);
+    }
+    const ranked = await resp.json();
+    renderRankedResults(ranked);
+    document.getElementById('analyze-bar').style.display = 'none';
+  } catch (e) {
+    alert('Analyse feilet: ' + e.message);
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Analyser med Claude';
+  }
+}
+
+async function loadFilters() {
+  let filters;
+  try {
+    const resp = await fetch('/api/filters');
+    filters = await resp.json();
+  } catch (e) {
+    console.error('Could not load filters', e);
+    return;
+  }
+
+  // --- Location: counties grouped under country ---
+  const locOptgroups = [];
+  const locOptions = [];
+  for (const country of (filters.location || [])) {
+    if (country.children && country.children.length) {
+      locOptgroups.push({ value: country.label, label: country.label });
+      for (const county of country.children) {
+        locOptions.push({ value: county.value, text: county.label, optgroup: country.label });
+        if (county.children && county.children.length) {
+          countyMunicipalities[county.value] = county.children;
+        }
+      }
+    } else {
+      locOptgroups.push({ value: country.label, label: country.label });
+      locOptions.push({ value: country.value, text: country.label, optgroup: country.label });
+    }
+  }
+
+  tomSelects.location = new TomSelect('#location', {
+    options: locOptions,
+    optgroups: locOptgroups,
+    optgroupField: 'optgroup',
+    plugins: ['remove_button'],
+    maxOptions: null,
+    placeholder: 'Velg fylke...',
+  });
+
+  // Municipality dropdown (initially empty, shown dynamically)
+  tomSelects.municipality = new TomSelect('#municipality', {
+    options: [],
+    plugins: ['remove_button'],
+    maxOptions: null,
+    placeholder: 'Velg kommune...',
+  });
+
+  tomSelects.location.on('change', updateMunicipalities);
+
+  // --- Occupation ---
+  tomSelects.occupation = new TomSelect('#occupation', {
+    options: (filters.occupation || []).map(i => ({ value: i.value, text: i.label })),
+    plugins: ['remove_button'],
+    maxOptions: null,
+    placeholder: 'Velg stilling...',
+  });
+
+  // --- Industry ---
+  tomSelects.industry = new TomSelect('#industry', {
+    options: (filters.industry || []).map(i => ({ value: i.value, text: i.label })),
+    plugins: ['remove_button'],
+    maxOptions: null,
+    placeholder: 'Velg bransje...',
+  });
+
+  // --- Checkbox groups ---
+  const checkboxGroups = ['home_office', 'job_duration', 'extent', 'job_sector', 'working_language', 'published'];
+  for (const name of checkboxGroups) {
+    const container = document.getElementById(name);
+    if (!container) continue;
+    for (const item of (filters[name] || [])) {
+      const lbl = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.name = name;
+      cb.value = item.value;
+      lbl.appendChild(cb);
+      lbl.appendChild(document.createTextNode(' ' + item.label));
+      container.appendChild(lbl);
+    }
+  }
+}
+
+function updateMunicipalities() {
+  const selected = tomSelects.location.getValue();
+  const countyVals = Array.isArray(selected) ? selected : (selected ? [selected] : []);
+
+  const options = [];
+  for (const val of countyVals) {
+    for (const m of (countyMunicipalities[val] || [])) {
+      options.push({ value: m.value, text: m.label });
+    }
+  }
+
+  const field = document.getElementById('kommune-field');
+  const ts = tomSelects.municipality;
+
+  if (!options.length) {
+    field.style.display = 'none';
+    ts.clear();
+    ts.clearOptions();
+    return;
+  }
+
+  // Keep only municipalities that still belong to a selected county
+  const validValues = new Set(options.map(o => o.value));
+  ts.getValue().forEach(v => { if (!validValues.has(v)) ts.removeItem(v); });
+
+  ts.clearOptions();
+  ts.addOptions(options);
+  field.style.display = '';
+}
+
+async function runSearch() {
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>Søker...';
+
+  const params = {};
+
+  const q = document.getElementById('q').value.trim();
+  if (q) params.q = q;
+
+  for (const [name, ts] of Object.entries(tomSelects)) {
+    if (name === 'municipality') continue;  // handled below
+    const vals = ts.getValue();
+    const arr = Array.isArray(vals) ? vals : (vals ? [vals] : []);
+    if (arr.length) params[name] = arr;
+  }
+
+  // Prefer municipality values over county values for location
+  const muniVals = (() => {
+    const v = tomSelects.municipality.getValue();
+    return Array.isArray(v) ? v : (v ? [v] : []);
+  })();
+  if (muniVals.length) params.location = muniVals;
+
+  document.querySelectorAll('.checkbox-group input[type=checkbox]:checked').forEach(cb => {
+    if (!params[cb.name]) params[cb.name] = [];
+    params[cb.name].push(cb.value);
+  });
+
+  try {
+    const resp = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    if (!resp.ok) throw new Error(resp.statusText);
+    const jobs = await resp.json();
+    renderResults(jobs);
+  } catch (e) {
+    document.getElementById('results').innerHTML =
+      '<p class="status-msg">Noe gikk galt. Sjekk konsollen og prøv igjen.</p>';
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Søk etter stillinger';
+  }
+}
+
+function formatDeadline(ms) {
+  if (!ms) return null;
+  return new Date(ms).toLocaleDateString('no-NO', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function jobCard(j, rank) {
+  const deadline = formatDeadline(j.deadline);
+  const rankHtml = rank != null ? `<span class="rank-num">#${rank}</span>` : '';
+  const scoreHtml = j.match_score != null ? `<span class="score-badge ${scoreCls(j.match_score)}">${j.match_score}%</span>` : '';
+  const summaryHtml = j.summary ? `<div class="job-summary">${escHtml(j.summary)}</div>` : '';
+
+  return `
+    <div class="job-card">
+      <div class="job-card-header">
+        ${rankHtml}
+        <div class="job-title"><a href="${j.url}" target="_blank" rel="noopener">${escHtml(j.title)}</a></div>
+        ${scoreHtml}
+      </div>
+      <div class="job-meta">
+        <span>${escHtml(j.employer)}</span>
+        ${j.location ? `<span>${escHtml(j.location)}</span>` : ''}
+        ${deadline ? `<span style="color:#aaa">Frist: ${deadline}</span>` : ''}
+      </div>
+      ${summaryHtml}
+    </div>
+  `;
+}
+
+function scoreCls(score) {
+  if (score >= 70) return 'score-high';
+  if (score >= 40) return 'score-mid';
+  return 'score-low';
+}
+
+function renderResults(jobs) {
+  currentJobs = jobs;
+  updateAnalyzeBar();
+
+  const el = document.getElementById('results');
+  if (!jobs.length) {
+    el.innerHTML = '<p class="status-msg">Ingen treff. Prøv andre filtre.</p>';
+    return;
+  }
+
+  el.innerHTML = `
+    <p class="results-meta"><strong>${jobs.length}</strong> stillinger funnet</p>
+    ${jobs.map(j => jobCard(j, null)).join('')}
+  `;
+}
+
+function renderRankedResults(jobs) {
+  const el = document.getElementById('results');
+  el.innerHTML = `
+    <p class="results-meta"><strong>${jobs.length}</strong> stillinger rangert av Claude</p>
+    ${jobs.map((j, i) => jobCard(j, i + 1)).join('')}
+  `;
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+loadFilters();
+</script>
+</body>
+</html>
