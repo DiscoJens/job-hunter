@@ -4,10 +4,10 @@ A personal job search tool that scrapes [finn.no](https://www.finn.no/job/search
 
 ## Features
 
-- **Scrape finn.no** — search by location (county + municipality), occupation, industry, job type, and more
-- **Searchable filter dropdowns** — all finn.no filter options pulled live, with Tom Select dropdowns
-- **CV + cover letter upload** — PDF or plain text
-- **AI ranking** — Claude reads every job description and scores each listing against your profile, returning a ranked list with a one-sentence explanation per job
+- **Scrape finn.no** - search by location (county + municipality), occupation, industry, job type, and more
+- **Searchable filter dropdowns** - all finn.no filter options pulled live, with Tom Select dropdowns
+- **CV + cover letter upload** - PDF or plain text
+- **AI ranking** - Claude reads every job description and scores each listing against your profile, returning a ranked list with a one-sentence explanation per job
 
 ## Requirements
 
@@ -44,7 +44,7 @@ Then open [http://localhost:8000](http://localhost:8000).
 ## Usage
 
 1. **Upload your CV** (and optionally a cover letter) in the Profile section
-2. **Set your filters** — location, occupation, industry, etc.
+2. **Set your filters** - location, occupation, industry, etc.
 3. Click **Søk** to scrape matching listings from finn.no
 4. Click **Analyser med Claude** to rank them by fit
 

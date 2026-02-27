@@ -66,7 +66,7 @@ def _parse_ranked(text: str) -> list[dict]:
     match = re.search(r"\[.*\]", text, re.DOTALL)
     if match:
         return json.loads(match.group())
-    # Response was truncated — recover by closing after the last complete object
+    # Response was truncated - recover by closing after the last complete object
     start = text.find("[")
     if start != -1:
         last = text.rfind("},")
